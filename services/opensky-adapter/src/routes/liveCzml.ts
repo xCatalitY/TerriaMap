@@ -7,11 +7,80 @@ import type { AircraftSnapshotRow } from "../types";
 const AIRPLANE_SVG =
   "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KICA8cGF0aCBkPSJNMTYgMyBMMTQuNSAxMSBMNiAxNSBMNiAxNyBMMTQuNSAxNS41IEwxNC41IDI0IEwxMS41IDI2LjUgTDExLjUgMjggTDE2IDI2LjUgTDIwLjUgMjggTDIwLjUgMjYuNSBMMTcuNSAyNCBMMTcuNSAxNS41IEwyNiAxNyBMMjYgMTUgTDE3LjUgMTEgWiIgZmlsbD0iI0ZGRDYwMCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuMiIvPgo8L3N2Zz4K";
 
-function rowToCzmlPacket(row: AircraftSnapshotRow) {
+// Extrapolation horizon in seconds — how far ahead to project position
+const EXTRAPOLATE_SECONDS = 60;
+
+/**
+ * Projects a geographic position forward using velocity and heading.
+ * Uses simple great-circle approximation (accurate enough for 30-60s extrapolation).
+ */
+function extrapolatePosition(
+  lat: number,
+  lon: number,
+  alt: number,
+  velocityMs: number,
+  headingDeg: number,
+  seconds: number
+): [number, number, number] {
+  const EARTH_RADIUS = 6371000;
+  const distanceM = velocityMs * seconds;
+  const headingRad = headingDeg * (Math.PI / 180);
+  const latRad = lat * (Math.PI / 180);
+  const lonRad = lon * (Math.PI / 180);
+  const angularDist = distanceM / EARTH_RADIUS;
+
+  const newLatRad = Math.asin(
+    Math.sin(latRad) * Math.cos(angularDist) +
+      Math.cos(latRad) * Math.sin(angularDist) * Math.cos(headingRad)
+  );
+  const newLonRad =
+    lonRad +
+    Math.atan2(
+      Math.sin(headingRad) * Math.sin(angularDist) * Math.cos(latRad),
+      Math.cos(angularDist) - Math.sin(latRad) * Math.sin(newLatRad)
+    );
+
+  return [newLonRad * (180 / Math.PI), newLatRad * (180 / Math.PI), alt];
+}
+
+function rowToCzmlPacket(
+  row: AircraftSnapshotRow,
+  nowIso: string,
+  futureIso: string
+) {
   const alt = row.geo_altitude ?? 10000;
   const heading = row.true_track ?? 0;
-  // CZML rotation: convert true_track (clockwise from north) to CZML rotation (counter-clockwise radians)
+  const velocity = row.velocity ?? 0;
   const rotationRad = -heading * (Math.PI / 180);
+
+  const currentPos = [row.longitude, row.latitude, alt];
+
+  // If aircraft has velocity and heading, extrapolate future position
+  const canExtrapolate = velocity > 0 && row.true_track !== null;
+  let position: object;
+
+  if (canExtrapolate) {
+    const futurePos = extrapolatePosition(
+      row.latitude,
+      row.longitude,
+      alt,
+      velocity,
+      heading,
+      EXTRAPOLATE_SECONDS
+    );
+
+    // Sampled position: Cesium interpolates between these timestamps
+    // Format: [time, lon, lat, alt, time, lon, lat, alt, ...]
+    position = {
+      interpolationAlgorithm: "LINEAR",
+      forwardExtrapolationType: "HOLD",
+      cartographicDegrees: [nowIso, ...currentPos, futureIso, ...futurePos]
+    };
+  } else {
+    position = {
+      cartographicDegrees: currentPos
+    };
+  }
 
   return {
     id: row.icao24,
@@ -21,11 +90,9 @@ function rowToCzmlPacket(row: AircraftSnapshotRow) {
     }<br/>Altitude: ${
       alt !== null ? Math.round(alt) + " m" : "N/A"
     }<br/>Speed: ${
-      row.velocity !== null ? Math.round(row.velocity) + " m/s" : "N/A"
-    }<br/>Heading: ${Math.round(heading)}°<br/>Category: ${row.category}`,
-    position: {
-      cartographicDegrees: [row.longitude, row.latitude, alt]
-    },
+      velocity !== null ? Math.round(velocity) + " m/s" : "N/A"
+    }<br/>Heading: ${Math.round(heading)}&deg;<br/>Category: ${row.category}`,
+    position,
     billboard: {
       image: AIRPLANE_SVG,
       scale: 0.7,
@@ -79,13 +146,24 @@ export function buildLiveCzmlRoute(
     await poller.ensureFresh(queryKey, qBbox);
     const snapshot = cache.getOrCreate(queryKey);
 
+    const now = new Date();
+    const future = new Date(now.getTime() + EXTRAPOLATE_SECONDS * 1000);
+    const nowIso = now.toISOString();
+    const futureIso = future.toISOString();
+
     const czml = [
       {
         id: "document",
         name: "OpenSky Live Aircraft",
-        version: "1.0"
+        version: "1.0",
+        clock: {
+          currentTime: nowIso,
+          multiplier: 1,
+          range: "UNBOUNDED",
+          step: "SYSTEM_CLOCK"
+        }
       },
-      ...snapshot.rows.map(rowToCzmlPacket)
+      ...snapshot.rows.map((row) => rowToCzmlPacket(row, nowIso, futureIso))
     ];
 
     return res.json(czml);
