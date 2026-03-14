@@ -35,6 +35,11 @@ clientConfig:
     supportEmail: "help@example.com"
     mobileDefaultViewerMode: "2d"
     experimentalFeatures: true
+    liveAircraft:
+      enabled: false
+      adapterBaseUrl: "https://opensky-adapter.example.com"
+      refreshSeconds: 30
+      snapshotPath: "/live/states"
 initConfig:
   homeCamera:
     north: "-8"
@@ -42,6 +47,14 @@ initConfig:
     south: "-45"
     west: "109"
   catalog: []
+liveAircraftConfig:
+  id: "openskyHelmAircraft"
+  type: "api-table"
+  name: "OpenSky Live Aircraft"
+  apis:
+    - url: "https://opensky-adapter.example.com/live/states"
+      responseDataPath: "rows"
+      kind: "PER_ROW"
 serverConfig:
   port: 3001
   allowProxyFor: []

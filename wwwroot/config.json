@@ -79,6 +79,12 @@
     },
     "searchBarConfig": {},
     "searchProviders": [],
+    "liveAircraft": {
+      "enabled": false,
+      "adapterBaseUrl": "/api/opensky",
+      "refreshSeconds": 30,
+      "snapshotPath": "/live/states"
+    },
     "useCesiumIonTerrain": false,
     "helpContent": [
       {

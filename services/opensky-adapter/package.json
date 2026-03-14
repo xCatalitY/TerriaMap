@@ -1,0 +1,18 @@
+{
+  "name": "@terriamap/opensky-adapter",
+  "description": "OpenSky live snapshot adapter boundary for TerriaMap. (ref: DL-001)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "start": "node dist/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2"
+  }
+}

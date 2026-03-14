@@ -6,4 +6,5 @@ metadata:
     pod: {{ printf "%s-%s" .Release.Name "terriamap" | trunc 63 | trimSuffix "-" | quote }}
 data:
   config.json: '{{ toJson .Values.clientConfig | indent 2 }}'
+  live-aircraft.json: '{{ toJson .Values.liveAircraftConfig | indent 2 }}'
   helm.json: '{{ toJson .Values.initConfig | indent 2 }}'
