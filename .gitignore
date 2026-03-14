@@ -26,6 +26,7 @@ packages/
 pancake/
 yarn-error.log
 .npmrc
+.env.local
 
 package-lock.json
 .nvmrc

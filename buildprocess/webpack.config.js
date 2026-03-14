@@ -4,14 +4,40 @@
 const configureWebpackForTerriaJS = require("terriajs/buildprocess/configureWebpack");
 const configureWebpackForPlugins = require("./configureWebpackForPlugins");
 const defaultBabelLoader = require("terriajs/buildprocess/defaultBabelLoader");
+const fs = require("fs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require("path");
 const HtmlPlugin = require("html-webpack-plugin");
+const webpack = require("webpack");
+
+function readEnvValue(filePath, key) {
+  if (!fs.existsSync(filePath)) {
+    return undefined;
+  }
+
+  const match = fs
+    .readFileSync(filePath, "utf8")
+    .match(new RegExp(`^\\s*${key}\\s*=\\s*(.+?)\\s*$`, "m"));
+
+  if (!match) {
+    return undefined;
+  }
+
+  return match[1].replace(/^['"]|['"]$/g, "");
+}
 
 /**
  * Webpack config for building terriamap
  */
 module.exports = function ({ devMode, baseHref = "/" }) {
+  const googleMapTilesApiKey =
+    process.env.GOOGLE_MAP_TILES_API_KEY ||
+    readEnvValue(
+      path.resolve(__dirname, "..", ".env.local"),
+      "GOOGLE_MAP_TILES_API_KEY"
+    ) ||
+    "";
+
   // Base configuration
   const config = {
     mode: devMode ? "development" : "production",
@@ -109,6 +135,10 @@ module.exports = function ({ devMode, baseHref = "/" }) {
       ]
     },
     plugins: [
+      new webpack.DefinePlugin({
+        "process.env.GOOGLE_MAP_TILES_API_KEY":
+          JSON.stringify(googleMapTilesApiKey)
+      }),
       // Extract SASS styles into a seperate stylesheet
       new MiniCssExtractPlugin({
         filename: "TerriaMap.css",

@@ -8,6 +8,7 @@ import ViewState from "terriajs/lib/ReactViewModels/ViewState";
 import registerCustomComponentTypes from "terriajs/lib/ReactViews/Custom/registerCustomComponentTypes";
 import updateApplicationOnHashChange from "terriajs/lib/ViewModels/updateApplicationOnHashChange";
 import updateApplicationOnMessageFromParentWindow from "terriajs/lib/ViewModels/updateApplicationOnMessageFromParentWindow";
+import addLocalGooglePhotorealistic3DTiles from "./lib/Core/addLocalGooglePhotorealistic3DTiles";
 import loadPlugins from "./lib/Core/loadPlugins";
 import showGlobalDisclaimer from "./lib/Views/showGlobalDisclaimer";
 import plugins from "./plugins";
@@ -76,7 +77,10 @@ export default terria
     }
 
     // Load init sources like init files and share links
-    terria.loadInitSources().then((result) => result.raiseError(terria));
+    terria.loadInitSources().then((result) => {
+      result.raiseError(terria);
+      addLocalGooglePhotorealistic3DTiles(terria);
+    });
 
     try {
       // Automatically update Terria (load new catalogs, etc.) when the hash part of the URL changes.
