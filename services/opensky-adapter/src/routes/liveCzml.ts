@@ -82,6 +82,27 @@ function rowToCzmlPacket(
     };
   }
 
+  const billboard: Record<string, unknown> = {
+    image: AIRPLANE_SVG,
+    scale: 0.7,
+    heightReference: "NONE",
+    verticalOrigin: "CENTER",
+    horizontalOrigin: "CENTER",
+    disableDepthTestDistance: 500000,
+    scaleByDistance: {
+      nearFarScalar: [0, 1.2, 5000000, 0.3]
+    }
+  };
+
+  if (canExtrapolate) {
+    // alignedAxis with velocityReference makes Cesium orient the billboard
+    // along the movement direction automatically as the position interpolates
+    billboard.alignedAxis = { velocityReference: `#${row.icao24}#position` };
+  } else {
+    // Static aircraft: use fixed rotation from true_track
+    billboard.rotation = rotationRad;
+  }
+
   return {
     id: row.icao24,
     name: row.callsign || row.icao24,
@@ -93,18 +114,7 @@ function rowToCzmlPacket(
       velocity !== null ? Math.round(velocity) + " m/s" : "N/A"
     }<br/>Heading: ${Math.round(heading)}&deg;<br/>Category: ${row.category}`,
     position,
-    billboard: {
-      image: AIRPLANE_SVG,
-      scale: 0.7,
-      rotation: rotationRad,
-      heightReference: "NONE",
-      verticalOrigin: "CENTER",
-      horizontalOrigin: "CENTER",
-      disableDepthTestDistance: 500000,
-      scaleByDistance: {
-        nearFarScalar: [0, 1.2, 5000000, 0.3]
-      }
-    }
+    billboard
   };
 }
 
