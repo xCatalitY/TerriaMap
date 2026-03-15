@@ -154,7 +154,7 @@
               "name": "OpenSky Live Aircraft",
               "description": "Live aircraft positions rendered in 3D at actual flight altitude. Data from OpenSky Network via adapter service.",
               "url": "http://localhost:4010/live/czml?lamin=45&lomin=5&lamax=55&lomax=15",
-              "refreshInterval": 30
+              "refreshInterval": 5
             }
           ]
         },
