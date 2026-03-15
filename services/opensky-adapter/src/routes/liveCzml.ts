@@ -95,11 +95,14 @@ function rowToCzmlPacket(
   };
 
   if (canExtrapolate) {
-    // alignedAxis with velocityReference makes Cesium orient the billboard
-    // along the movement direction automatically as the position interpolates
+    // velocityReference makes Cesium compute alignedAxis from the entity's
+    // velocity vector. Billboard UP aligns with movement direction.
+    // rotation=0 means SVG nose (which points up) follows velocity exactly.
     billboard.alignedAxis = { velocityReference: `#${row.icao24}#position` };
+    billboard.rotation = 0;
   } else {
-    // Static aircraft: use fixed rotation from true_track
+    // Static aircraft: screen-aligned with fixed rotation from true_track.
+    // No alignedAxis → rotation is relative to screen-up (≈ north in top-down view).
     billboard.rotation = rotationRad;
   }
 
