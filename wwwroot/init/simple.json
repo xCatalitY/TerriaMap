@@ -144,13 +144,6 @@
           }
         },
         {
-          "id": "openskyLiveExamples",
-          "type": "group",
-          "name": "Live Aircraft",
-          "description": "Live aircraft positions rendered at actual flight altitude with smooth client-side interpolation. Loads automatically on startup.",
-          "members": []
-        },
-        {
           "id": "QwErTyUiOp",
           "type": "group",
           "name": "Sentinel-2 cloudless world",
