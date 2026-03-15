@@ -9,6 +9,7 @@ import registerCustomComponentTypes from "terriajs/lib/ReactViews/Custom/registe
 import updateApplicationOnHashChange from "terriajs/lib/ViewModels/updateApplicationOnHashChange";
 import updateApplicationOnMessageFromParentWindow from "terriajs/lib/ViewModels/updateApplicationOnMessageFromParentWindow";
 import addLocalGooglePhotorealistic3DTiles from "./lib/Core/addLocalGooglePhotorealistic3DTiles";
+import { startLiveAircraft } from "./lib/Core/LiveAircraftDataSource";
 import loadPlugins from "./lib/Core/loadPlugins";
 import showGlobalDisclaimer from "./lib/Views/showGlobalDisclaimer";
 import plugins from "./plugins";
@@ -80,6 +81,13 @@ export default terria
     terria.loadInitSources().then((result) => {
       result.raiseError(terria);
       addLocalGooglePhotorealistic3DTiles(terria);
+
+      // Start live aircraft with client-side interpolation (no CZML)
+      startLiveAircraft(
+        terria,
+        "http://localhost:4010/live/states?lamin=45&lomin=5&lamax=55&lomax=15",
+        5000
+      );
     });
 
     try {

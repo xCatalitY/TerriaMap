@@ -147,16 +147,8 @@
           "id": "openskyLiveExamples",
           "type": "group",
           "name": "Live Aircraft",
-          "members": [
-            {
-              "id": "openskyLiveAircraft",
-              "type": "czml",
-              "name": "OpenSky Live Aircraft",
-              "description": "Live aircraft positions rendered in 3D at actual flight altitude. Data from OpenSky Network via adapter service.",
-              "url": "http://localhost:4010/live/czml?lamin=45&lomin=5&lamax=55&lomax=15",
-              "refreshInterval": 5
-            }
-          ]
+          "description": "Live aircraft positions rendered at actual flight altitude with smooth client-side interpolation. Loads automatically on startup.",
+          "members": []
         },
         {
           "id": "QwErTyUiOp",
